@@ -1,7 +1,7 @@
 from pytube import YouTube
 import requests
 
-query = input("Search for a video...\n")
+query = input("Search for a video..\n")
 
 params = {'q':query,
           'type':'video',
