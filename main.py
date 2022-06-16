@@ -21,16 +21,26 @@ def download(i, videoID, win):
     initiating(win, i)
     url = f"https://www.youtube.com/watch?v={videoID}"
     vid = YouTube(url)
-    audio = vid.streams.filter(only_audio = True)
-    try:
-        out_file = audio[0].download()
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.mp3'
-        os.rename(out_file, new_file)
-        completed(win)
-    except FileExistsError:
-        already_exists(win, out_file)
-
+    if win.mp4.isChecked():
+        audio = vid.streams.filter(file_extension='mp4')
+        try:
+            audio[0].download()
+        except FileExistsError:
+            already_exists(win)
+    elif win.mp3.isChecked():
+        audio = vid.streams.filter(only_audio = True)
+        try:
+            out_file = audio[0].download()
+            base, ext = os.path.splitext(out_file)
+            new_file = base + '.mp3'
+            os.rename(out_file, new_file)
+        except FileExistsError:
+            already_exists(win)
+            os.remove(out_file)
+    else:
+        invalid_format(win)
+        
+    completed(win)
     win.setCursor(PyQt5.QtGui.QCursor(PyQt5.QtCore.Qt.ArrowCursor))
 
 
@@ -50,6 +60,18 @@ class Window(QMainWindow):
         self.search_bar.resize(400,30)
         self.search_bar.setStyleSheet("background-color: white; border-radius: 10px")
         self.search_bar.move(200,90)
+
+        self.mp3 = QtWidgets.QRadioButton(self)
+        self.mp3.setText("mp3")
+        self.mp3.setCheckable(True)
+        self.mp3.setStyleSheet("background:transparent")
+        self.mp3.move(380, 130)
+
+        self.mp4 = QtWidgets.QRadioButton(self)
+        self.mp4.setStyleSheet("background:transparent")
+        self.mp4.setCheckable(True)
+        self.mp4.setText("mp4")
+        self.mp4.move(440,130)
 
         self.search = QtWidgets.QPushButton(self)
         self.search.setCursor(PyQt5.QtGui.QCursor(PyQt5.QtCore.Qt.PointingHandCursor))
@@ -137,12 +159,20 @@ class Window(QMainWindow):
         self.down_three.clicked.connect(lambda:download(2, self.videos[2]['id']['videoId'], self))
         self.down_four.clicked.connect(lambda:download(3, self.videos[3]['id']['videoId'], self))
         self.down_five.clicked.connect(lambda:download(4, self.videos[4]['id']['videoId'], self))
-
+        
 def initiating(win, i):
     win.msg = QtWidgets.QMessageBox(win)
     win.msg.setWindowTitle("Download Initiated")
     win.msg.setText(f"Press Enter or Click Ok to continue downloading\n{win.videos[i]['snippet']['title']} by {win.videos[i]['snippet']['channelTitle']}...")
     win.msg.setIcon(QtWidgets.QMessageBox.Information)
+    win.msg.setDefaultButton(QtWidgets.QMessageBox.Ok)
+    x = win.msg.exec_()
+
+def invalid_format(win):
+    win.msg = QtWidgets.QMessageBox(win)
+    win.msg.setWindowTitle("Format Error")
+    win.msg.setText("Please select a valid format")
+    win.msg.setIcon(QtWidgets.QMessageBox.Critical)
     win.msg.setDefaultButton(QtWidgets.QMessageBox.Ok)
     x = win.msg.exec_()
 
@@ -154,8 +184,7 @@ def completed(win):
     win.msg.setDefaultButton(QtWidgets.QMessageBox.Ok)
     x = win.msg.exec_()
 
-def already_exists(win, file):
-    os.remove(file)
+def already_exists(win):
     win.msg = QtWidgets.QMessageBox(win)
     win.msg.setWindowTitle("Error!")
     win.msg.setText("File already exists!")
