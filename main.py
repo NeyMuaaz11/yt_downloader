@@ -56,16 +56,17 @@ class Window(QMainWindow):
     # function to retrieve and print data from YouTube's API according to 
     # query entered by the user in the search bar
     def print_results(self):
-        # use get_videos to retrieve data from API
-        self.videos = get_videos(self.search_bar.text())
-        self.search_bar.clear()
+        self.videos = get_videos(self.search_bar.text()) # use get_videos to retrieve data from API
+        self.search_bar.clear() # clear the search bar
+
+        # create groupbox to print data in
         self.results = QtWidgets.QGroupBox(self)
         self.results.setTitle("Top Results")
         self.results.move(10,170)
         self.results.resize(780,450)
         self.results.show()
 
-        # loop over the videos and print their name and channels
+        # loop over the videos and print their names and channels
         y_name = 190
         y_channel = 210
         for i in range(5):
